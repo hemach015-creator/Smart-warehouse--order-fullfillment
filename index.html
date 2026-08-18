@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFulfill AI — Warehouse Command Center</title>
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#fff;--surface2:#f8fafc;--text:#172033;--muted:#687386;
+  --line:#e5e9f0;--primary:#315efb;--primary2:#2348d8;--green:#159570;--yellow:#b77900;
+  --red:#d14343;--purple:#7657d9;--shadow:0 8px 28px rgba(24,38,70,.07);--radius:16px
+}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh}.sidebar{width:250px;background:#111827;color:#d9e0ec;padding:18px 14px;position:fixed;inset:0 auto 0 0;z-index:20}
+.brand{display:flex;gap:11px;align-items:center;padding:8px 10px 24px}.brand-icon{width:38px;height:38px;border-radius:11px;background:#315efb;display:grid;place-items:center;font-weight:800;color:white}
+.brand strong{display:block;color:#fff;font-size:16px}.brand span{font-size:11px;color:#9aa5b7}
+.nav-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#6f7b8e;margin:16px 10px 7px}
+.nav button{width:100%;display:flex;gap:10px;align-items:center;color:#aeb8c9;background:transparent;padding:11px 12px;border-radius:10px;text-align:left;margin:2px 0}
+.nav button:hover,.nav button.active{background:#202b42;color:#fff}.nav button.active{box-shadow:inset 3px 0 #4d72ff}
+.side-bottom{position:absolute;bottom:18px;left:14px;right:14px}.rolebox{background:#1b2538;border:1px solid #2b3850;padding:12px;border-radius:12px}
+.rolebox label{font-size:10px;color:#7f8aa0}.rolebox select{width:100%;margin-top:6px;background:#111827;color:#fff;border:1px solid #334057;padding:8px;border-radius:8px}
+.main{margin-left:250px;width:calc(100% - 250px)}.topbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:10}
+.page-title h1{font-size:19px;margin:0}.page-title p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.top-actions{display:flex;gap:8px;align-items:center}.icon-btn,.demo-btn{background:#f3f5f9;color:#526076;border:1px solid var(--line);padding:9px 11px;border-radius:9px}.demo-btn{background:#111827;color:white;border-color:#111827}
+.avatar{width:34px;height:34px;border-radius:50%;background:#dbe4ff;color:#315efb;display:grid;place-items:center;font-weight:700}
+.content{padding:24px;max-width:1600px;margin:auto}.view{display:none}.view.active{display:block}
+.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(6,minmax(0,1fr));margin-bottom:16px}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.kpi{padding:17px}.kpi .label{font-size:12px;color:var(--muted)}.kpi .value{font-size:27px;font-weight:750;margin:7px 0 3px}.delta{font-size:11px}.up{color:var(--green)}.warn{color:var(--yellow)}.danger{color:var(--red)}
+.two{grid-template-columns:1.35fr .85fr}.three{grid-template-columns:repeat(3,1fr)}.card-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.card-head h2{font-size:14px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
+.card-body{padding:17px}.summary{background:#f3f6ff;border:1px solid #dbe3ff;padding:15px;border-radius:13px;line-height:1.55;font-size:13px}.summary strong{color:#2548c5}
+.alert{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.alert:last-child{border-bottom:0}.dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}.dot.red{background:var(--red)}.dot.yellow{background:#e3a51b}.dot.green{background:var(--green)}
+.alert h3{font-size:12px;margin:0 0 4px}.alert p{font-size:11px;color:var(--muted);margin:0;line-height:1.45}.mini-btn{margin-top:7px;padding:6px 9px;border:1px solid var(--line);background:white;border-radius:7px;font-size:10px;color:#34415a}
+.pipeline{display:flex;align-items:center;gap:5px;overflow:auto;padding:7px 0}.stage{min-width:105px;text-align:center}.stage .circle{width:38px;height:38px;border-radius:50%;background:#eef2f8;margin:auto;display:grid;place-items:center;font-weight:700;font-size:12px}.stage.done .circle{background:#dff5ed;color:var(--green)}.stage.active .circle{background:#e4eaff;color:var(--primary)}.stage p{font-size:10px;color:var(--muted);margin:7px 0}.arrow{color:#a8b1c0}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:12px}.table th{background:#f8fafc;color:#687386;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--line)}.table td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}.table tr:hover td{background:#fbfcff}
+.badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:20px;font-size:10px;font-weight:650;white-space:nowrap}.b-green{background:#e5f7f1;color:#147b60}.b-yellow{background:#fff4d9;color:#986700}.b-red{background:#fde8e8;color:#b63838}.b-blue{background:#e9eeff;color:#3156d7}.b-gray{background:#edf0f4;color:#657083}.b-purple{background:#eeeaff;color:#6b4dc4}
+.btn{padding:8px 11px;border-radius:8px;font-size:11px;background:#315efb;color:#fff}.btn.secondary{background:#fff;color:#39465d;border:1px solid var(--line)}.btn.danger{background:#fff0f0;color:#bb3b3b;border:1px solid #ffd3d3}.btn.success{background:#e8f8f2;color:#117e5f;border:1px solid #c9eddf}.btn:disabled{opacity:.45;cursor:not-allowed}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.toolbar input,.toolbar select{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 10px;font-size:11px;outline:none}.toolbar input{min-width:210px}
+.page-grid{display:grid;grid-template-columns:1fr 360px;gap:16px}.detail{position:sticky;top:85px;height:max-content}.detail-empty{padding:50px 20px;text-align:center;color:var(--muted);font-size:12px}
+.timeline{padding:5px 0}.tl{display:flex;gap:12px;position:relative;padding-bottom:18px}.tl:last-child{padding-bottom:0}.tl:before{content:"";position:absolute;left:7px;top:16px;bottom:0;border-left:1px dashed #cbd3df}.tl:last-child:before{display:none}.tl-dot{width:15px;height:15px;border-radius:50%;background:#dfe5ef;z-index:1}.tl.done .tl-dot{background:#315efb}.tl h4{font-size:11px;margin:0}.tl p{font-size:10px;color:var(--muted);margin:3px 0;line-height:1.4}
+.ai-fab{position:fixed;right:24px;bottom:22px;background:#111827;color:white;border-radius:15px;padding:12px 15px;box-shadow:0 12px 30px rgba(17,24,39,.25);z-index:30;display:flex;gap:9px;align-items:center}.ai-fab span{background:#315efb;border-radius:7px;padding:4px 6px;font-size:10px}
+.drawer{position:fixed;right:-430px;top:0;width:430px;height:100vh;background:white;z-index:40;box-shadow:-15px 0 45px rgba(20,30,55,.18);transition:.25s;display:flex;flex-direction:column}.drawer.open{right:0}.drawer-head{padding:17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.drawer-head h2{margin:0;font-size:15px}.drawer-body{padding:17px;overflow:auto;flex:1}.chat-msg{padding:11px 12px;border-radius:12px;margin-bottom:10px;font-size:12px;line-height:1.5;max-width:90%}.chat-msg.ai{background:#f1f4fa}.chat-msg.user{background:#315efb;color:white;margin-left:auto}.suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.suggestions button{background:#f3f5f9;border:1px solid var(--line);border-radius:20px;padding:6px 9px;font-size:10px;color:#44516a}.chat-input{padding:12px;border-top:1px solid var(--line);display:flex;gap:7px}.chat-input input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px;font-size:11px;outline:none}
+.modal-bg{position:fixed;inset:0;background:rgba(12,18,31,.45);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}.modal-bg.open{display:flex}.modal{background:white;border-radius:16px;max-width:680px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 25px 70px rgba(0,0,0,.22)}.modal-head{padding:17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-head h2{font-size:15px;margin:0}.modal-body{padding:18px}.decision{background:#f5f7ff;border:1px solid #dbe3ff;padding:13px;border-radius:11px;margin:10px 0}.decision b{font-size:12px}.decision p{font-size:11px;line-height:1.5;color:#536078;margin:5px 0}
+.bar{height:8px;background:#edf0f5;border-radius:20px;overflow:hidden}.bar i{display:block;height:100%;background:#315efb;border-radius:20px}.chart-row{display:flex;align-items:end;gap:10px;height:145px;padding:10px 4px}.barcol{flex:1;text-align:center}.barcol i{display:block;width:100%;max-width:34px;margin:auto;background:#315efb;border-radius:6px 6px 2px 2px}.barcol span{font-size:9px;color:var(--muted);display:block;margin-top:6px}.statline{display:flex;justify-content:space-between;font-size:11px;margin:10px 0 6px}
+.sim-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.scenario{border:1px solid var(--line);padding:15px;border-radius:12px}.scenario h3{font-size:13px;margin:0 0 6px}.scenario p{font-size:11px;color:var(--muted);line-height:1.45;min-height:44px}
+.toast{position:fixed;right:24px;bottom:78px;background:#111827;color:#fff;padding:11px 14px;border-radius:10px;font-size:11px;z-index:80;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.2s}.toast.show{opacity:1;transform:none}
+.mobile-menu{display:none}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.two,.page-grid{grid-template-columns:1fr}.detail{position:static}.three{grid-template-columns:1fr}}
+@media(max-width:760px){.sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:none}.main{margin-left:0;width:100%}.mobile-menu{display:block}.content{padding:14px}.kpis{grid-template-columns:repeat(2,1fr)}.topbar{padding:0 14px}.top-actions .icon-btn{display:none}.drawer{width:100%}.sim-grid{grid-template-columns:1fr}.brand{padding-bottom:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brand-icon">SF</div><div><strong>SmartFulfill AI</strong><span>Warehouse Intelligence</span></div></div>
+  <div class="nav-title">Command Center</div>
+  <nav class="nav">
+    <button class="active" data-view="dashboard">◈ <span>Dashboard</span></button>
+    <button data-view="orders">▣ <span>Orders</span></button>
+    <button data-view="inventory">▤ <span>Inventory</span></button>
+    <button data-view="picking">⌁ <span>Picking</span></button>
+    <button data-view="packing">□ <span>Packing & QC</span></button>
+    <button data-view="exceptions">⚠ <span>Exception Center</span></button>
+    <button data-view="dispatch">➜ <span>Dispatch</span></button>
+  </nav>
+  <div class="nav-title">Intelligence</div>
+  <nav class="nav">
+    <button data-view="analytics">◒ <span>Analytics</span></button>
+    <button data-view="replenishment">↻ <span>Smart Replenishment</span></button>
+    <button data-view="simulator">◇ <span>What-If Simulator</span></button>
+    <button data-view="activity">≡ <span>Activity Log</span></button>
+  </nav>
+  <div class="side-bottom"><div class="rolebox"><label>ACTIVE ROLE</label><select id="roleSelect"><option>Warehouse Manager</option><option>Warehouse Operator</option><option>Inventory Manager</option></select></div></div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div class="page-title"><button class="icon-btn mobile-menu" id="menuBtn">☰</button><span id="pageHeading"><h1>Warehouse Command Center</h1><p>Decision-first fulfillment operations</p></span></div>
+  <div class="top-actions"><button class="demo-btn" id="demoBtn">⚡ Hackathon Demo Mode</button><button class="icon-btn" id="briefBtn">AI Briefing</button><div class="avatar">HM</div></div>
+</header>
+<div class="content">
+
+<section id="dashboard" class="view active">
+  <div class="grid kpis" id="kpis"></div>
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head"><h2>AI Operational Summary</h2><span>Live decision engine</span></div>
+      <div class="card-body"><div class="summary" id="summary"></div><div style="margin-top:14px"><div class="card-head" style="padding:0 0 10px;border:0"><h2>Fulfillment Pipeline</h2></div><div class="pipeline" id="pipeline"></div></div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>Critical Alerts</h2><span id="alertCount"></span></div><div class="card-body" id="alerts"></div></div>
+  </div>
+  <div class="grid three" style="margin-top:16px">
+    <div class="card"><div class="card-head"><h2>Orders At Risk</h2><span>Needs action</span></div><div class="card-body" id="riskOrders"></div></div>
+    <div class="card"><div class="card-head"><h2>AI Recommendations</h2><span>Next best actions</span></div><div class="card-body" id="recommendations"></div></div>
+    <div class="card"><div class="card-head"><h2>Inventory Risk</h2><span>Availability</span></div><div class="card-body" id="inventoryRisk"></div></div>
+  </div>
+</section>
+
+<section id="orders" class="view">
+  <div class="toolbar"><input id="orderSearch" placeholder="Search order, customer or product…"><select id="orderFilter"><option>All</option><option>Urgent</option><option>At Risk</option><option>Pending</option><option>Picking</option><option>Packing</option><option>Dispatched</option></select></div>
+  <div class="page-grid"><div class="card"><div class="card-head"><h2>Order Management</h2><span id="orderCount"></span></div><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Priority</th><th>Score</th><th>Deadline</th><th>Status</th><th>Allocation</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div><div class="card detail" id="orderDetail"><div class="detail-empty">Select an order to view its fulfillment timeline and AI decision.</div></div></div>
+</section>
+
+<section id="inventory" class="view">
+  <div class="toolbar"><input id="invSearch" placeholder="Search product or location…"><select id="invFilter"><option>All</option><option>Healthy</option><option>Low Stock</option><option>Critical</option><option>Out of Stock</option></select></div>
+  <div class="card"><div class="card-head"><h2>Inventory Intelligence</h2><span>30 products · live availability</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>Category</th><th>Location</th><th>Current</th><th>Reserved</th><th>Available</th><th>Reorder Level</th><th>Status</th><th>Action</th></tr></thead><tbody id="inventoryTable"></tbody></table></div></div>
+</section>
+
+<section id="picking" class="view">
+  <div class="card"><div class="card-head"><h2>Picking Management</h2><span>Optimized movement paths</span></div><div class="card-body"><div class="summary"><strong>AI route:</strong> Batch nearby locations together to reduce picker travel. Recommended sequence: A-01 → A-03 → B-02 → B-04 → C-09.</div></div><div class="table-wrap"><table class="table"><thead><tr><th>Task</th><th>Order</th><th>Picker</th><th>Product</th><th>Qty</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody id="pickingTable"></tbody></table></div></div>
+</section>
+
+<section id="packing" class="view">
+  <div class="card"><div class="card-head"><h2>Packing & Quality Check</h2><span>Pre-dispatch validation</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Items</th><th>Priority</th><th>Packing</th><th>QC</th><th>Action</th></tr></thead><tbody id="packingTable"></tbody></table></div></div>
+</section>
+
+<section id="exceptions" class="view">
+  <div class="card"><div class="card-head"><h2>Exception Center</h2><span id="exceptionCount"></span></div><div class="table-wrap"><table class="table"><thead><tr><th>Exception</th><th>Type</th><th>Impact</th><th>AI Decision</th><th>Status</th><th>Resolution</th></tr></thead><tbody id="exceptionsTable"></tbody></table></div></div>
+</section>
+
+<section id="dispatch" class="view">
+  <div class="card"><div class="card-head"><h2>Dispatch Tracking</h2><span>Deadline-aware fulfillment</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Packed</th><th>Deadline</th><th>Risk</th><th>Status</th><th>Action</th></tr></thead><tbody id="dispatchTable"></tbody></table></div></div>
+</section>
+
+<section id="analytics" class="view">
+  <div class="grid three" id="analyticsCards"></div>
+  <div class="grid two" style="margin-top:16px"><div class="card"><div class="card-head"><h2>Orders by Status</h2></div><div class="card-body"><div class="chart-row" id="statusChart"></div></div></div><div class="card"><div class="card-head"><h2>Processing Time</h2></div><div class="card-body" id="timeStats"></div></div></div>
+  <div class="card" style="margin-top:16px"><div class="card-head"><h2>Bottleneck Detection</h2><span>AI analysis</span></div><div class="card-body" id="bottleneck"></div></div>
+</section>
+
+<section id="replenishment" class="view">
+  <div class="card"><div class="card-head"><h2>Smart Replenishment</h2><span>Demand-aware recommendations</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>Current</th><th>Reserved</th><th>Demand</th><th>Reorder Level</th><th>Suggested Qty</th><th>Reason</th><th>Action</th></tr></thead><tbody id="reorderTable"></tbody></table></div></div>
+</section>
+
+<section id="simulator" class="view">
+  <div class="card"><div class="card-head"><h2>Warehouse What-If Simulator</h2><span>Simulation does not alter live data</span></div><div class="card-body"><div class="sim-grid" id="simGrid"></div><div id="simResult" style="margin-top:16px"></div></div></div>
+</section>
+
+<section id="activity" class="view">
+  <div class="card"><div class="card-head"><h2>Audit & Activity Log</h2><span>Explainable operations history</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>Details</th></tr></thead><tbody id="activityTable"></tbody></table></div></div>
+</section>
+</div></main></div>
+
+<button class="ai-fab" id="aiFab">✦ <b>AI Warehouse Assistant</b><span>LIVE</span></button>
+<div class="drawer" id="aiDrawer">
+ <div class="drawer-head"><h2>✦ AI Warehouse Assistant</h2><button class="icon-btn" id="aiClose">×</button></div>
+ <div class="drawer-body"><div class="chat-msg ai">I’m connected to the current warehouse state. Ask me what needs attention, why a decision was made, or what action to take next.</div><div class="suggestions" id="suggestions"></div><div id="chat"></div></div>
+ <div class="chat-input"><input id="chatInput" placeholder="Ask about orders, stock, bottlenecks…"><button class="btn" id="chatSend">Ask</button></div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal"><div class="modal-head"><h2 id="modalTitle">AI Decision</h2><button class="icon-btn" onclick="closeModal()">×</button></div><div class="modal-body" id="modalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const products=[
+["P001","Wireless Mouse","Accessories","A-01",18,11,8,25],["P002","Mechanical Keyboard","Accessories","A-03",14,8,6,18],
+["P003","USB-C Hub","Accessories","A-04",31,17,10,30],["P004","Laptop Stand","Workspace","B-01",9,4,7,15],
+["P005","Webcam HD","Electronics","B-02",21,13,8,24],["P006","Noise Cancelling Headset","Electronics","B-04",12,7,6,18],
+["P007","24in Monitor","Displays","C-01",8,3,5,10],["P008","27in Monitor","Displays","C-03",13,6,6,12],
+["P009","HDMI Cable","Cables","C-05",42,18,15,40],["P010","Ethernet Cable","Cables","C-06",55,21,20,50],
+["P011","Power Bank","Electronics","D-01",16,10,8,24],["P012","Wireless Charger","Accessories","D-02",27,13,10,30],
+["P013","Bluetooth Speaker","Audio","D-04",11,5,6,18],["P014","Smartwatch","Wearables","E-01",7,5,5,14],
+["P015","Keyboard Wrist Rest","Workspace","E-02",34,10,12,30],["P016","Laptop Sleeve 15in","Workspace","E-04",25,12,10,28],
+["P017","USB-A Adapter","Cables","F-01",48,16,18,45],["P018","Desk Lamp","Workspace","F-02",19,9,8,20],
+["P019","Microphone","Audio","F-04",6,4,5,15],["P020","Tablet Stand","Workspace","G-01",15,6,7,20],
+["P021","SSD 1TB","Storage","G-02",10,7,5,14],["P022","SSD 512GB","Storage","G-03",17,8,7,18],
+["P023","RAM 16GB","Components","G-05",13,5,6,16],["P024","Laptop Dock","Accessories","H-01",8,6,5,16],
+["P025","Surge Protector","Electrical","H-02",22,10,9,24],["P026","Cable Organizer","Workspace","H-04",38,14,15,35],
+["P027","Phone Tripod","Accessories","I-01",20,7,9,25],["P028","Ring Light","Lighting","I-03",9,5,6,16],
+["P029","Portable SSD","Storage","I-05",12,7,6,20],["P030","Document Scanner","Electronics","J-01",5,3,4,10]
+].map(x=>({id:x[0],name:x[1],cat:x[2],loc:x[3],current:x[4],reserved:x[5],reorder:x[6],demand:x[7],damaged:0}));
+
+const orders=[
+{id:"1042",customer:"Apex Technologies",items:[["P001",10],["P009",4]],time:"08:14",deadline:"12:35",priority:"Urgent",status:"Allocated",alloc:"Partial 7/10",risk:"High",age:220},
+{id:"1051",customer:"Nova Retail",items:[["P002",5],["P003",3]],time:"08:42",deadline:"13:10",priority:"High",status:"Picking",alloc:"Full",risk:"Medium",age:190},
+{id:"1063",customer:"Orbit Labs",items:[["P005",8],["P012",5]],time:"09:03",deadline:"13:30",priority:"High",status:"Created",alloc:"Pending",risk:"High",age:165},
+{id:"1068",customer:"GreenMart",items:[["P004",7],["P015",4]],time:"09:18",deadline:"14:15",priority:"Normal",status:"Allocated",alloc:"Full",risk:"Low",age:140},
+{id:"1070",customer:"ByteWorks",items:[["P006",6],["P021",2]],time:"09:26",deadline:"14:30",priority:"Urgent",status:"Picking",alloc:"Full",risk:"Medium",age:130},
+{id:"1074",customer:"City Campus",items:[["P007",3],["P008",2]],time:"09:47",deadline:"15:00",priority:"Normal",status:"Packing",alloc:"Full",risk:"Low",age:110},
+{id:"1077",customer:"Medix Supplies",items:[["P014",4],["P019",2]],time:"10:01",deadline:"15:20",priority:"High",status:"QC",alloc:"Full",risk:"Medium",age:95},
+{id:"1081",customer:"Zenith Retail",items:[["P011",8],["P013",3]],time:"10:15",deadline:"16:00",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:80},
+{id:"1086",customer:"Pixel House",items:[["P018",4],["P028",2]],time:"10:27",deadline:"16:10",priority:"Normal",status:"Allocated",alloc:"Full",risk:"Low",age:70},
+{id:"1090",customer:"Northstar",items:[["P024",5],["P025",5]],time:"10:38",deadline:"16:30",priority:"High",status:"Picking",alloc:"Full",risk:"Medium",age:60},
+{id:"1094",customer:"Acme Services",items:[["P017",9],["P026",8]],time:"10:51",deadline:"17:00",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:50},
+{id:"1098",customer:"CloudNine",items:[["P022",4],["P029",3]],time:"11:05",deadline:"17:15",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:40},
+{id:"1101",customer:"Delta Office",items:[["P030",2],["P020",4]],time:"11:14",deadline:"17:30",priority:"Normal",status:"Allocated",alloc:"Full",risk:"Low",age:32},
+{id:"1105",customer:"RapidCart",items:[["P001",5],["P012",6]],time:"11:22",deadline:"17:45",priority:"High",status:"Created",alloc:"Pending",risk:"Medium",age:25},
+{id:"1108",customer:"Vertex Studio",items:[["P003",7],["P016",5]],time:"11:30",deadline:"18:00",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:18},
+{id:"1112",customer:"Bright School",items:[["P009",12],["P010",15]],time:"11:39",deadline:"18:20",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:12},
+{id:"1116",customer:"Kite Systems",items:[["P023",6],["P027",5]],time:"11:45",deadline:"18:30",priority:"High",status:"Allocated",alloc:"Full",risk:"Low",age:8},
+{id:"1120",customer:"Omni Stores",items:[["P005",5],["P006",3]],time:"11:52",deadline:"18:45",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:5},
+{id:"1124",customer:"BluePeak",items:[["P008",4],["P013",2]],time:"11:58",deadline:"19:00",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:2},
+{id:"1127",customer:"FutureMart",items:[["P007",4],["P021",4]],time:"12:03",deadline:"19:15",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:1},
+{id:"1130",customer:"Aster Labs",items:[["P019",2],["P024",2]],time:"12:06",deadline:"19:30",priority:"Normal",status:"Created",alloc:"Pending",risk:"Low",age:1}
+];
+
+let exceptions=[
+{id:"EX-201",type:"Allocation Failure",title:"Partial stock for Order #1042",impact:"3 units short; dispatch risk",decision:"Allocate available 7 units and hold lower-priority demand.",status:"Open",resolution:"Pending"},
+{id:"EX-202",type:"Out of Stock",title:"Smartwatch demand exceeds availability",impact:"Order #1077 may need replacement",decision:"Check alternate location / replacement SKU.",status:"Open",resolution:"Pending"},
+{id:"EX-203",type:"Damaged Item",title:"2 microphone units flagged during QC",impact:"Order #1077 quantity risk",decision:"Replace from available stock; quarantine damaged units.",status:"Open",resolution:"Pending"},
+{id:"EX-204",type:"Picking Delay",title:"Picker cannot locate P021",impact:"Order #1070 delayed",decision:"Search alternate location G-03 and reassign task.",status:"Open",resolution:"Pending"},
+{id:"EX-205",type:"Dispatch Risk",title:"Order #1063 deadline approaching",impact:"High risk of late dispatch",decision:"Increase priority and expedite picking.",status:"Open",resolution:"Pending"}
+];
+let activities=[
+["12:09","AI recommendation generated","Decision Engine","Order #1042 partial allocation: 7/10 units."],
+["12:08","Picking exception created","Warehouse Operator","P021 not found at G-02."],
+["12:06","QC issue detected","QC Operator","Damage flag raised for microphone stock."],
+["12:03","Priority recalculated","AI Engine","Order #1063 score increased due to deadline proximity."],
+["11:58","Order created","System","Order #1124 entered fulfillment pipeline."]
+];
+let pickTasks=[
+["PK-01","1042","Ravi","Wireless Mouse",7,"A-01","Ready"],["PK-02","1051","Anu","Mechanical Keyboard",5,"A-03","In Progress"],
+["PK-03","1070","Kiran","SSD 1TB",2,"G-02","Exception"],["PK-04","1090","Ravi","Laptop Dock",5,"H-01","Ready"],
+["PK-05","1116","Anu","RAM 16GB",6,"G-05","Ready"],["PK-06","1063","Kiran","Webcam HD",8,"B-02","Queued"]
+];
+let state={products,orders,exceptions,activities,pickTasks};
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function toast(t){const x=$("#toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2300)}
+function money(n){return "₹"+(n*1200).toLocaleString("en-IN")}
+function available(p){return Math.max(0,p.current-p.reserved)}
+function statusBadge(s){
+ const m={Healthy:"b-green","Low Stock":"b-yellow",Critical:"b-red","Out of Stock":"b-gray",Urgent:"b-red",High:"b-purple",Normal:"b-blue",Low:"b-green",Created:"b-gray",Prioritized:"b-blue",Allocated:"b-blue",Picking:"b-yellow",Packing:"b-yellow",QC:"b-purple",Ready:"b-green",Dispatched:"b-green",Pending:"b-gray",Full:"b-green",Open:"b-red",Resolved:"b-green",Exception:"b-red","In Progress":"b-yellow","Queued":"b-gray"};
+ return `<span class="badge ${m[s]||"b-gray"}">${s}</span>`
+}
+function priorityScore(o){
+ let p={Urgent:35,High:25,Normal:12}[o.priority]||10;
+ let urgency=Math.min(30,Math.max(2,Math.round((240-o.age)/8)));
+ let availability=o.alloc==="Full"?20:o.alloc.includes("Partial")?14:8;
+ let risk=o.risk==="High"?15:o.risk==="Medium"?9:3;
+ return Math.min(99,p+urgency+availability+risk)
+}
+function inventoryStatus(p){const a=available(p);if(a<=0)return"Out of Stock";if(a<=Math.max(2,p.reorder-3))return"Critical";if(a<=p.reorder)return"Low Stock";if(a>p.demand*2.2)return"Healthy";return"Healthy"}
+function renderDashboard(){
+ const total=state.orders.length,pending=state.orders.filter(o=>o.status!=="Dispatched").length;
+ const risk=state.orders.filter(o=>o.risk==="High").length,low=state.products.filter(p=>["Low Stock","Critical"].includes(inventoryStatus(p))).length;
+ const out=state.products.filter(p=>inventoryStatus(p)==="Out of Stock").length,pick=state.pickTasks.filter(t=>t[6]!=="Picked").length;
+ const due=state.orders.filter(o=>o.risk!=="Low"&&o.status!=="Dispatched").length;
+ $("#kpis").innerHTML=[["Total Orders",total,"Live queue"],["Pending Orders",pending,"In fulfillment"],["Orders At Risk",risk,"Needs action"],["Inventory Value",money(state.products.reduce((a,p)=>a+p.current,0)),"Estimated"],["Low Stock",low,"Replenishment risk"],["Dispatch Due",due,"Deadline-sensitive"]].map((x,i)=>`<div class="card kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="delta ${i===2||i===4?"danger":"up"}">${x[2]}</div></div>`).join("");
+ const bottleneck="Picking"; const high=state.orders.filter(o=>o.risk==="High").map(o=>"#"+o.id);
+ $("#summary").innerHTML=`<strong>12:10 AI assessment:</strong> ${risk} high-risk orders need attention. <b>${bottleneck}</b> is the primary bottleneck. ${low} products need stock attention. <br><br><strong>Next best actions:</strong> expedite ${high.slice(0,2).join(" and ")||"the earliest-deadline orders"}, resolve the P021 picking exception, and replenish critical SKUs.`;
+ const stages=["Created","Allocated","Picking","Packing","QC","Ready","Dispatched"];
+ $("#pipeline").innerHTML=stages.map((s,i)=>`<div class="stage ${i<3?"done":i===3?"active":""}"><div class="circle">${state.orders.filter(o=>o.status===s).length}</div><p>${s}</p></div>${i<6?'<div class="arrow">›</div>':""}`).join("");
+ const alerts=state.exceptions.filter(e=>e.status==="Open").slice(0,4);$("#alertCount").textContent=alerts.length+" open";
+ $("#alerts").innerHTML=alerts.map(e=>`<div class="alert"><i class="dot ${e.type==="Out of Stock"?"yellow":"red"}"></i><div><h3>${e.title}</h3><p>${e.impact}</p><button class="mini-btn" onclick="openException('${e.id}')">View AI decision</button></div></div>`).join("");
+ $("#riskOrders").innerHTML=state.orders.filter(o=>o.risk!=="Low"&&o.status!=="Dispatched").sort((a,b)=>priorityScore(b)-priorityScore(a)).slice(0,4).map(o=>`<div class="alert"><i class="dot ${o.risk==="High"?"red":"yellow"}"></i><div style="flex:1"><h3>#${o.id} · ${o.customer}</h3><p>Score ${priorityScore(o)} · deadline ${o.deadline}</p></div>${statusBadge(o.risk)}</div>`).join("");
+ $("#recommendations").innerHTML=[
+ ["Expedite #1042","7/10 units can be allocated now.","Accept",()=>showDecision("Partial Allocation — Order #1042","Allocate 7 available units to the urgent order. Hold lower-priority demand and create replenishment for 3 units.","Near deadline + higher customer priority.","Reduces immediate dispatch risk while protecting scarce stock.")],
+ ["Resolve P021","Search alternate location G-03.","Apply",()=>resolveException("EX-204")],
+ ["Replenish P019","Current availability is below reorder level.","Create",()=>createReplenishment("P019")]
+ ].map(r=>`<div class="alert"><i class="dot yellow"></i><div style="flex:1"><h3>${r[0]}</h3><p>${r[1]}</p><button class="mini-btn" onclick="(${r[3].toString()})()"> ${r[2]} Recommendation</button></div></div>`).join("");
+ const risks=state.products.filter(p=>inventoryStatus(p)!=="Healthy").sort((a,b)=>available(a)-available(b)).slice(0,5);
+ $("#inventoryRisk").innerHTML=risks.map(p=>`<div class="statline"><span>${p.name}</span><b>${available(p)} available</b></div><div class="bar"><i style="width:${Math.min(100,available(p)/Math.max(1,p.reorder)*100)}%"></i></div>`).join("")||"<div style='font-size:12px;color:var(--muted)'>No inventory risks.</div>";
+}
+function renderOrders(){
+ const q=($("#orderSearch")?.value||"").toLowerCase(),f=$("#orderFilter")?.value||"All";
+ let arr=state.orders.filter(o=>(!q||("#"+o.id+" "+o.customer+" "+o.items.map(x=>getP(x[0]).name).join(" ")).toLowerCase().includes(q))&&(f==="All"||(f==="Urgent"&&o.priority==="Urgent")||(f==="At Risk"&&o.risk!=="Low")||(f==="Pending"&&["Created","Allocated"].includes(o.status))||(f===o.status)));
+ $("#orderCount").textContent=arr.length+" orders";
+ $("#ordersTable").innerHTML=arr.map(o=>`<tr onclick="selectOrder('${o.id}')" style="cursor:pointer"><td><b>#${o.id}</b></td><td>${o.customer}</td><td>${statusBadge(o.priority)}</td><td><b>${priorityScore(o)}</b></td><td>${o.deadline}</td><td>${statusBadge(o.status)}</td><td>${statusBadge(o.alloc)}</td></tr>`).join("");
+}
+function getP(id){return state.products.find(p=>p.id===id)}
+function selectOrder(id){
+ const o=state.orders.find(x=>x.id===id); if(!o)return;
+ const timeline=["Order Created","Priority Determined","Inventory Checked",o.alloc==="Full"?"Full Allocation":o.alloc+" Units Allocated","Picking","Packing","Quality Check","Dispatch"];
+ const done=["Created","Prioritized","Allocated","Picking","Packing","QC","Ready","Dispatched"].indexOf(o.status);
+ $("#orderDetail").innerHTML=`<div class="card-head"><h2>Order #${o.id}</h2><button class="mini-btn" onclick="showDecision('Order #${o.id}','${decisionFor(o)}','Priority ${o.priority} · Score ${priorityScore(o)}','Deadline ${o.deadline} · allocation ${o.alloc}')">AI Decision</button></div><div class="card-body"><p style="font-size:12px"><b>${o.customer}</b><br><span style="color:var(--muted)">Deadline ${o.deadline} · ${o.priority} · ${statusBadge(o.risk)}</span></p><div class="summary"><b>Why this priority?</b><br>${decisionFor(o)}</div><div class="timeline" style="margin-top:17px">${timeline.map((t,i)=>`<div class="tl ${i<=Math.max(0,done+1)?"done":""}"><i class="tl-dot"></i><div><h4>${t}</h4><p>${i===1?"Score "+priorityScore(o)+" from urgency, deadline, customer priority and availability.":i===2?"Reserved stock checked before allocation.":i===3?o.alloc:"Workflow checkpoint"}</p></div></div>`).join("")}</div></div>`;
+}
+function decisionFor(o){if(o.id==="1042")return"Urgent order is prioritized because the dispatch deadline is near and only 7 of 10 requested units are available. The engine recommends partial allocation rather than blocking the order.";if(o.risk==="High")return"High risk due to deadline proximity and/or stock constraints. Expedite picking after confirming allocation.";return"Priority combines urgency, deadline proximity, order age, customer priority and current inventory availability."}
+function renderInventory(){
+ const q=($("#invSearch")?.value||"").toLowerCase(),f=$("#invFilter")?.value||"All";
+ let arr=state.products.filter(p=>(!q||(p.name+" "+p.loc+" "+p.id).toLowerCase().includes(q))&&(f==="All"||inventoryStatus(p)===f));
+ $("#inventoryTable").innerHTML=arr.map(p=>`<tr><td><b>${p.id}</b> ${p.name}</td><td>${p.cat}</td><td>${p.loc}</td><td>${p.current}</td><td>${p.reserved}</td><td><b>${available(p)}</b></td><td>${p.reorder}</td><td>${statusBadge(inventoryStatus(p))}</td><td><button class="mini-btn" onclick="createReplenishment('${p.id}')">Replenish</button></td></tr>`).join("");
+}
+function renderPicking(){
+ $("#pickingTable").innerHTML=state.pickTasks.map(t=>`<tr><td>${t[0]}</td><td>#${t[1]}</td><td>${t[2]}</td><td>${t[3]}</td><td>${t[4]}</td><td>${t[5]}</td><td>${statusBadge(t[6])}</td><td>${t[6]==="Picked"?statusBadge("Picked"):`<button class="mini-btn" onclick="updatePick('${t[0]}')">${t[6]==="Exception"?"Resolve & Pick":"Mark Picked"}</button>`}</td></tr>`).join("");
+}
+function updatePick(id){const t=state.pickTasks.find(x=>x[0]===id);if(!t)return;if(t[6]==="Exception"){t[5]="G-03";t[6]="In Progress";log("Picking exception resolved","Warehouse Operator",`${t[3]} reassigned to alternate location G-03.`);toast("Alternate location assigned.");}else{t[6]="Picked";log("Picking completed","Warehouse Operator",`${t[3]} picked for Order #${t[1]}.`);toast("Picking task completed.");}renderAll();}
+function renderPacking(){
+ const arr=state.orders.filter(o=>["Packing","QC","Ready"].includes(o.status));
+ $("#packingTable").innerHTML=arr.map(o=>`<tr><td><b>#${o.id}</b></td><td>${o.items.reduce((a,x)=>a+x[1],0)}</td><td>${statusBadge(o.priority)}</td><td>${statusBadge(o.status==="Packing"?"In Progress":"Ready")}</td><td>${o.status==="QC"?statusBadge("Exception"):statusBadge(o.status==="Ready"?"Passed":"Pending")}</td><td><button class="mini-btn" onclick="qcAction('${o.id}')">${o.status==="QC"?"Run QC":o.status==="Packing"?"Complete Packing":"Open"}</button></td></tr>`).join("")||`<tr><td colspan="6" style="text-align:center;color:var(--muted)">No orders currently in packing/QC.</td></tr>`;
+}
+function qcAction(id){const o=state.orders.find(x=>x.id===id);if(o.status==="Packing"){o.status="QC";log("Packing completed","Warehouse Operator",`Order #${id} moved to quality check.`);toast("Order moved to QC.");}else if(o.status==="QC"){if(id==="1077"){o.risk="High";exceptions.find(e=>e.id==="EX-203").status="Open";showDecision("QC Failure — Order #1077","Damaged microphone detected. Quarantine the damaged units and search available stock for a replacement.","Replacement preserves the customer quantity and prevents a failed dispatch.","If replacement is unavailable, create an order exception.");}else{o.status="Ready";log("Quality check passed","QC Operator",`Order #${id} passed item, quantity and packaging checks.`);toast("QC passed.");}}renderAll();}
+function renderExceptions(){
+ $("#exceptionCount").textContent=state.exceptions.filter(e=>e.status==="Open").length+" open";
+ $("#exceptionsTable").innerHTML=state.exceptions.map(e=>`<tr><td><b>${e.id}</b><br>${e.title}</td><td>${statusBadge(e.type)}</td><td>${e.impact}</td><td>${e.decision}</td><td>${statusBadge(e.status)}</td><td>${e.status==="Open"?`<button class="mini-btn" onclick="resolveException('${e.id}')">Resolve</button>`:e.resolution}</td></tr>`).join("");
+}
+function openException(id){const e=state.exceptions.find(x=>x.id===id);if(e)showDecision(e.type+" — "+e.id,e.decision,e.impact,e.resolution,()=>resolveException(id))}
+function resolveException(id){const e=state.exceptions.find(x=>x.id===id);if(!e)return;e.status="Resolved";e.resolution="Resolved by "+($("#roleSelect").value);log("Exception resolved",$("#roleSelect").value,`${e.id}: ${e.title}`);toast("Exception resolved.");closeModal();renderAll();}
+function renderDispatch(){
+ $("#dispatchTable").innerHTML=state.orders.map(o=>`<tr><td><b>#${o.id}</b></td><td>${o.customer}</td><td>${o.status==="Packing"||o.status==="QC"?"Today 12:0x":"—"}</td><td>${o.deadline}</td><td>${statusBadge(o.risk)}</td><td>${statusBadge(o.status)}</td><td>${o.risk!=="Low"&&o.status!=="Dispatched"?`<button class="mini-btn" onclick="expedite('${o.id}')">Expedite</button>`:"—"}</td></tr>`).join("");
+}
+function expedite(id){const o=state.orders.find(x=>x.id===id);o.priority="Urgent";o.risk="Medium";log("Order expedited","Warehouse Manager",`Order #${id} priority raised to Urgent due to dispatch risk.`);toast("Order expedited and priority raised.");renderAll();}
+function renderAnalytics(){
+ const counts=["Created","Allocated","Picking","Packing","QC","Ready","Dispatched"].map(s=>[s,state.orders.filter(o=>o.status===s).length]);$("#statusChart").innerHTML=counts.map(x=>`<div class="barcol"><i style="height:${Math.max(12,x[1]*20)}px"></i><span>${x[0]}<br>${x[1]}</span></div>`).join("");
+ const vals=[["Picking",46],["Packing",25],["QC",17],["Allocation",12]];$("#timeStats").innerHTML=vals.map(x=>`<div class="statline"><span>${x[0]}</span><b>${x[1]}%</b></div><div class="bar"><i style="width:${x[1]}%"></i></div>`).join("");
+ $("#analyticsCards").innerHTML=[["Fulfillment Rate","91%","Target 95%"],["Avg Pick Time","18 min","↑ 4 min vs target"],["Exception Rate","8.4%","↓ 1.2% this shift"]].map((x,i)=>`<div class="card kpi"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="delta ${i===1?"warn":"up"}">${x[2]}</div></div>`).join("");
+ $("#bottleneck").innerHTML=`<div class="summary"><b>Picking is the current bottleneck — 46% of observed processing delay.</b><br><br>The pattern is driven by multi-zone travel and one active picking exception. <br><br><b>AI Recommendation:</b> batch-pick high-volume orders, cluster A/B zone tasks, and move frequently picked SKUs closer to the dispatch zone. <br><br><button class="btn" onclick="toast('Batch-picking recommendation applied to the demo plan.')">Apply Recommendation</button></div>`;
+}
+function renderReplenishment(){
+ const arr=state.products.filter(p=>available(p)<=p.reorder||p.demand>p.current);
+ $("#reorderTable").innerHTML=arr.map(p=>{let sug=Math.max(p.demand+p.reserved-p.current,p.reorder*2-p.current,4);return `<tr><td><b>${p.name}</b><br><small>${p.id} · ${p.loc}</small></td><td>${p.current}</td><td>${p.reserved}</td><td>${p.demand}</td><td>${p.reorder}</td><td><b>${sug}</b></td><td>${available(p)<=0?"Out of stock":available(p)<=p.reorder?"Below reorder level":"High expected demand"}</td><td><button class="mini-btn" onclick="createReplenishment('${p.id}')">Create Task</button></td></tr>`}).join("");
+}
+function createReplenishment(id){const p=getP(id);if(!p)return;const qty=Math.max(5,p.demand+p.reserved-p.current,p.reorder*2-p.current);log("Replenishment task created","Inventory Manager",`${p.name}: suggested order ${qty} units.`);toast(`Replenishment task created for ${p.name} (${qty} units).`);}
+function renderSimulator(){
+ $("#simGrid").innerHTML=[
+ ["20 more orders arrive","Estimate stockouts, risk and replenishment impact.",()=>simulate("orders")],
+ ["2 pickers unavailable","Estimate picking delay and priority changes.",()=>simulate("pickers")],
+ ["10 units of Wireless Mouse arrive","Estimate impact on Order #1042 and other demand.",()=>simulate("stock")],
+ ["Dispatch deadline moves 30 minutes earlier","Recalculate orders at risk.",()=>simulate("deadline")]
+ ].map(x=>`<div class="scenario"><h3>${x[0]}</h3><p>${x[1]}</p><button class="btn secondary" onclick="(${x[2].toString()})()">Run Simulation</button></div>`).join("");
+}
+function simulate(type){let text="";if(type==="orders")text="<b>Projected impact:</b> 4 additional stockouts, 6 more at-risk orders, and +22% picking load. <br><br><b>Recommendation:</b> pre-create replenishment tasks for P001, P006, P019 and P024; batch-pick high-volume orders.";if(type==="pickers")text="<b>Projected impact:</b> picking time increases ~31 minutes and 7 orders may miss their current dispatch window. <br><br><b>Recommendation:</b> prioritize urgent/high-score orders and move one operator from packing after the current QC queue clears.";if(type==="stock")text="<b>Projected impact:</b> Order #1042 shortage falls from 3 units to zero, allowing full allocation and removing its highest-severity exception. <br><br><b>Recommendation:</b> allocate the inbound units to #1042 before lower-priority demand.";if(type==="deadline")text="<b>Projected impact:</b> 5 additional orders become dispatch-risk. <br><br><b>Recommendation:</b> raise priority for #1063, #1051 and #1070 and use the optimized picking route.";$("#simResult").innerHTML=`<div class="summary">${text}</div>`}
+function renderActivity(){$("#activityTable").innerHTML=state.activities.map(a=>`<tr><td>${a[0]}</td><td><b>${a[1]}</b></td><td>${a[2]}</td><td>${a[3]}</td></tr>`).join("")}
+function log(event,actor,details){state.activities.unshift([new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}),event,actor,details])}
+function renderAll(){renderDashboard();renderOrders();renderInventory();renderPicking();renderPacking();renderExceptions();renderDispatch();renderAnalytics();renderReplenishment();renderSimulator();renderActivity()}
+$$(".nav button").forEach(b=>b.addEventListener("click",()=>{ $$(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$(".view").forEach(v=>v.classList.remove("active"));$("#"+b.dataset.view).classList.add("active");$("#pageHeading").innerHTML=`<h1>${b.textContent.trim()}</h1><p>Smart warehouse decision workspace</p>`;$("#sidebar").classList.remove("open")}));
+$("#menuBtn").onclick=()=>$("#sidebar").classList.toggle("open");
+$("#orderSearch").oninput=renderOrders;$("#orderFilter").onchange=renderOrders;$("#invSearch").oninput=renderInventory;$("#invFilter").onchange=renderInventory;
+function showDecision(title,decision,reason,impact,action){$("#modalTitle").textContent=title;$("#modalBody").innerHTML=`<div class="decision"><b>Situation</b><p>${reason}</p></div><div class="decision"><b>AI Decision</b><p>${decision}</p></div><div class="decision"><b>Recommendation</b><p>${impact}</p></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn" id="acceptDecision">Accept Decision</button><button class="btn secondary" onclick="overrideDecision()">Override</button></div>`;$("#modalBg").classList.add("open");$("#acceptDecision").onclick=()=>{if(action)action();else{log("AI recommendation accepted","Warehouse Manager",title);toast("AI recommendation accepted.");closeModal();renderAll()}}}
+function overrideDecision(){log("AI recommendation overridden","Warehouse Manager","Operator selected an alternate operational decision.");toast("Override recorded in audit log.");closeModal();renderAll()}
+function closeModal(){$("#modalBg").classList.remove("open")}
+$("#demoBtn").onclick=()=>{showDecision("⚡ Hackathon Demo — Stock Shortage","Order #1042 requests 10 Wireless Mouse units; only 7 are currently available. The engine recommends partial allocation of 7, holding lower-priority demand and creating replenishment for 3.","Urgent order + near deadline + insufficient stock.","Click Accept to record the decision. Inventory and audit state will update.");$("#acceptDecision").onclick=()=>{const p=getP("P001");p.reserved+=7;const o=state.orders.find(x=>x.id==="1042");o.alloc="Partial 7/10";o.status="Allocated";log("AI recommendation accepted","Warehouse Manager","Demo: 7/10 units partially allocated to Order #1042; replenishment for 3 units recommended.");toast("Demo scenario applied — dashboard updated.");closeModal();renderAll()}};
+$("#briefBtn").onclick=()=>{showDecision("Start-of-Day AI Briefing","Prioritize #1042, #1063 and #1051; resolve the P021 picking exception; replenish critical stock.","84 orders are pending in a normal shift scenario; current demo state contains multiple deadline and inventory risks.","Picking is the primary bottleneck. Batch-pick urgent orders and protect scarce inventory.")};
+$("#aiFab").onclick=()=>$("#aiDrawer").classList.add("open");$("#aiClose").onclick=()=>$("#aiDrawer").classList.remove("open");
+const promptList=["🔥 Critical Issues","📦 Inventory Risk","🚚 Dispatch Risk","🧠 Optimize Warehouse","📊 Explain Analytics"];
+$("#suggestions").innerHTML=promptList.map(p=>`<button>${p}</button>`).join("");
+$$(".suggestions button").forEach(b=>b.onclick=()=>askAI(b.textContent));
+$("#chatSend").onclick=()=>{const v=$("#chatInput").value.trim();if(v){askAI(v);$("#chatInput").value=""}};
+$("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#chatSend").click()});
+function askAI(q){$("#chat").insertAdjacentHTML("beforeend",`<div class="chat-msg user">${q}</div>`);let a=aiAnswer(q.toLowerCase());setTimeout(()=>{$("#chat").insertAdjacentHTML("beforeend",`<div class="chat-msg ai">${a}</div>`);$("#chat").parentElement.scrollTop=$("#chat").parentElement.scrollHeight},180)}
+function aiAnswer(q){
+ const high=state.orders.filter(o=>o.risk==="High"&&o.status!=="Dispatched"),critical=state.products.filter(p=>["Critical","Out of Stock"].includes(inventoryStatus(p)));
+ if(q.includes("critical")||q.includes("risk"))return `<b>Situation:</b> ${high.length} high-risk orders and ${state.exceptions.filter(e=>e.status==="Open").length} open exceptions are active.<br><br><b>Analysis:</b> #1042 has a partial allocation, #1063 is deadline-sensitive, and P021 has a picking exception.<br><br><b>Recommendation:</b> expedite #1042/#1063, resolve P021, then replenish ${critical.slice(0,3).map(p=>p.name).join(", ")||"critical SKUs"}.`;
+ if(q.includes("low")||q.includes("inventory")||q.includes("stock"))return `<b>Situation:</b> ${critical.length} products are critical/out of stock. ${critical.slice(0,5).map(p=>p.name+" ("+available(p)+" available)").join(", ")}.<br><br><b>Recommendation:</b> create replenishment tasks for the highest demand gap first. Available stock is calculated as current minus reserved.`;
+ if(q.includes("1042")||q.includes("why"))return `<b>Situation:</b> Order #1042 needs 10 Wireless Mouse units but only 7 are available for allocation.<br><br><b>Analysis:</b> It is urgent and near its dispatch deadline, so blocking it entirely creates more risk.<br><br><b>Decision:</b> allocate 7 now, hold lower-priority demand, and replenish 3.`;
+ if(q.includes("bottleneck")||q.includes("optimize"))return `<b>Situation:</b> Picking contributes about 46% of modeled processing delay.<br><br><b>Recommendation:</b> batch-pick nearby locations, prioritize high-score orders, and move frequently picked SKUs closer to dispatch.<br><br><b>Reason:</b> this reduces travel and protects deadline-sensitive orders.`;
+ if(q.includes("dispatch"))return `<b>Situation:</b> ${high.length} orders have high dispatch risk.<br><br><b>Recommendation:</b> expedite the earliest-deadline high-score order first. #1042 currently has the strongest urgency signal.`;
+ if(q.includes("reorder"))return `<b>Recommendation:</b> replenish products where available stock is below the reorder level or demand exceeds projected supply. Use the Smart Replenishment page to create tasks and record them in the audit log.`;
+ if(q.includes("batch"))return `<b>AI route:</b> A-01 → A-03 → B-02 → B-04 → C-09.<br><br>This groups nearby tasks and reduces unnecessary warehouse movement.`;
+ return `<b>Situation:</b> I analyzed the current mock warehouse state.<br><br><b>Recommendation:</b> start with critical exceptions, then protect deadline-sensitive orders and replenish inventory gaps. Try asking about <i>#1042, inventory risk, dispatch risk, or the bottleneck</i>.`;
+}
+renderAll();selectOrder("1042");
+</script>
+</body>
